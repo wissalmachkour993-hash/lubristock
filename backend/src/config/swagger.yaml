@@ -1,0 +1,48 @@
+openapi: 3.0.3
+info:
+  title: OCP LubriControl API
+  version: 1.0.0
+  description: API RESTful pour dashboard, inventaire, interventions et paramètres.
+servers:
+  - url: http://localhost:4000/api
+paths:
+  /auth/login:
+    post:
+      summary: Connexion utilisateur
+  /lubrifiants:
+    get:
+      summary: Liste des lubrifiants
+    post:
+      summary: Créer un lubrifiant
+  /interventions:
+    get:
+      summary: Liste des interventions
+    post:
+      summary: Créer une intervention
+  /dashboard/kpis:
+    get:
+      summary: KPIs dashboard
+  /dashboard/top-equipements:
+    get:
+      summary: Top équipements
+  /dashboard/consommation-mensuelle:
+    get:
+      summary: Consommation mensuelle
+  /dashboard/distribution-lubrifiants:
+    get:
+      summary: Distribution par lubrifiant
+  /alerts:
+    get:
+      summary: Alertes anomalies et stocks
+  /import/interventions:
+    post:
+      summary: Import historique interventions Excel/CSV
+  /import/interventions/template:
+    get:
+      summary: Télécharger le modèle Excel d’import interventions
+  /export/lubrifiants:
+    get:
+      summary: Export lubrifiants (xlsx/csv)
+  /analytics/pareto:
+    get:
+      summary: Analyse Pareto

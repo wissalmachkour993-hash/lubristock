@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const analytics_controller_1 = require("../controllers/analytics.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const router = (0, express_1.Router)();
+router.get("/pareto", auth_middleware_1.requireAuth, analytics_controller_1.paretoController);
+router.get("/consommation-heures", auth_middleware_1.requireAuth, analytics_controller_1.consommationHeuresController);
+router.get("/score-sante", auth_middleware_1.requireAuth, analytics_controller_1.scoreSanteController);
+exports.default = router;
+//# sourceMappingURL=analytics.routes.js.map

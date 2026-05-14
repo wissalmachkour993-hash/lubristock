@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  admin
+  utilisateur
+}
+
+enum InterventionType {
+  vidange
+  appoint
+  ravitaillement
+}
+
+enum StockStatus {
+  normal
+  faible
+  critique
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         Role     @default(utilisateur)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Categorie {
+  id          String      @id @default(cuid())
+  nom         String      @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  equipements Equipement[]
+  interventions Intervention[]
+}
+
+model Equipement {
+  id              String          @id @default(cuid())
+  nom             String          @unique
+  categorieId     String
+  actif           Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  categorie       Categorie       @relation(fields: [categorieId], references: [id])
+  interventions   Intervention[]
+  planifications  Planification[]
+}
+
+model Lubrifiant {
+  id                    String         @id @default(cuid())
+  nom                   String         @unique
+  stockActuel           Float
+  stockMin              Float
+  stockSecurite         Float
+  stockMax              Float
+  consommationMoyenne   Float          @default(0)
+  delaiApprovisionnement Int
+  pointCommande         Float
+  prixUnitaire          Float
+  unite                 String
+  statut                StockStatus
+  derniereMiseAJour     DateTime       @default(now())
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  interventions         Intervention[]
+  planifications        Planification[]
+}
+
+model Intervention {
+  id             String           @id @default(cuid())
+  date           DateTime
+  categorieId    String
+  equipementId   String
+  lubrifiantId   String
+  type           InterventionType
+  quantite       Float
+  compteurHoraire Float
+  responsable    String
+  observation    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  categorie      Categorie        @relation(fields: [categorieId], references: [id])
+  equipement     Equipement       @relation(fields: [equipementId], references: [id])
+  lubrifiant     Lubrifiant       @relation(fields: [lubrifiantId], references: [id])
+}
+
+model Planification {
+  id               String     @id @default(cuid())
+  equipementId     String
+  lubrifiantId     String
+  frequenceHeures  Int
+  prochaineEcheance DateTime
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  equipement       Equipement @relation(fields: [equipementId], references: [id])
+  lubrifiant       Lubrifiant @relation(fields: [lubrifiantId], references: [id])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

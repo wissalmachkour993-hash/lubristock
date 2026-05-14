@@ -1,0 +1,20 @@
+# PostgreSQL pour l'API locale (même DATABASE_URL que backend/.env)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ocp_lubricants
+    ports:
+      - "5432:5432"
+    volumes:
+      - ocp_lubricants_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ocp_lubricants"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ocp_lubricants_pg:

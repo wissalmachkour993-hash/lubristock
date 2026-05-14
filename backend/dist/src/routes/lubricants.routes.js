@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const lubricants_controller_1 = require("../controllers/lubricants.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const validate_middleware_1 = require("../middleware/validate.middleware");
+const lubricant_validator_1 = require("../validators/lubricant.validator");
+const router = (0, express_1.Router)();
+router.get("/", auth_middleware_1.requireAuth, lubricants_controller_1.listLubricants);
+router.post("/", auth_middleware_1.requireAuth, (0, auth_middleware_1.requireRole)(["admin"]), (0, validate_middleware_1.validate)(lubricant_validator_1.upsertLubricantSchema), lubricants_controller_1.createLubricant);
+router.put("/:id", auth_middleware_1.requireAuth, (0, auth_middleware_1.requireRole)(["admin"]), lubricants_controller_1.updateLubricant);
+router.delete("/:id", auth_middleware_1.requireAuth, (0, auth_middleware_1.requireRole)(["admin"]), lubricants_controller_1.deleteLubricant);
+exports.default = router;
+//# sourceMappingURL=lubricants.routes.js.map
