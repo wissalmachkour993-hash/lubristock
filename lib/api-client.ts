@@ -10,6 +10,8 @@ const FALLBACK_CONFIG: RuntimeClientConfig = {
   password: process.env.NEXT_PUBLIC_API_PASSWORD ?? "admin123",
 };
 
+const RUNTIME_CONFIG_CACHE_KEY = "ocp-runtime-config-v1";
+
 let runtimeConfigPromise: Promise<RuntimeClientConfig> | null = null;
 let tokenCache: { key: string; token: string } | null = null;
 let resolvedApiBaseUrl: string | null = null;
@@ -36,6 +38,31 @@ function normalizeApiBaseUrl(configured: string) {
   return configured.replace(/\/$/, "");
 }
 
+function readCachedRuntimeConfig(): RuntimeClientConfig {
+  if (typeof window === "undefined") return FALLBACK_CONFIG;
+  try {
+    const raw = localStorage.getItem(RUNTIME_CONFIG_CACHE_KEY);
+    if (!raw) return FALLBACK_CONFIG;
+    const parsed = JSON.parse(raw) as Partial<RuntimeClientConfig>;
+    return {
+      apiBaseUrl: parsed.apiBaseUrl ?? FALLBACK_CONFIG.apiBaseUrl,
+      email: parsed.email ?? FALLBACK_CONFIG.email,
+      password: parsed.password ?? FALLBACK_CONFIG.password,
+    };
+  } catch {
+    return FALLBACK_CONFIG;
+  }
+}
+
+function writeCachedRuntimeConfig(cfg: RuntimeClientConfig) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(RUNTIME_CONFIG_CACHE_KEY, JSON.stringify(cfg));
+  } catch {
+    // noop
+  }
+}
+
 async function getRuntimeConfig(): Promise<RuntimeClientConfig> {
   if (typeof window === "undefined") {
     return { ...FALLBACK_CONFIG, apiBaseUrl: normalizeApiBaseUrl(FALLBACK_CONFIG.apiBaseUrl) };
@@ -44,15 +71,17 @@ async function getRuntimeConfig(): Promise<RuntimeClientConfig> {
 
   runtimeConfigPromise = fetch("/api/runtime-config", { cache: "no-store" })
     .then(async (response) => {
-      if (!response.ok) return FALLBACK_CONFIG;
+      if (!response.ok) return readCachedRuntimeConfig();
       const data = (await response.json()) as Partial<RuntimeClientConfig>;
-      return {
+      const cfg = {
         apiBaseUrl: data.apiBaseUrl ?? FALLBACK_CONFIG.apiBaseUrl,
         email: data.email ?? FALLBACK_CONFIG.email,
         password: data.password ?? FALLBACK_CONFIG.password,
       };
+      writeCachedRuntimeConfig(cfg);
+      return cfg;
     })
-    .catch(() => FALLBACK_CONFIG)
+    .catch(() => readCachedRuntimeConfig())
     .then((cfg) => ({ ...cfg, apiBaseUrl: normalizeApiBaseUrl(cfg.apiBaseUrl) }));
 
   return runtimeConfigPromise;

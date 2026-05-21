@@ -91,7 +91,7 @@ export function Sidebar() {
         {/* Footer */}
         <div className="border-t border-border p-4 space-y-2">
           <Link
-            href="/download"
+            href="/install"
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all text-sidebar-foreground hover:bg-sidebar-accent",
               collapsed && "justify-center"

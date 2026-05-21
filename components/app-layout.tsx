@@ -4,6 +4,7 @@ import { useStore } from "@/lib/store";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { OfflineBanner } from "@/components/offline-banner";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className={cn("min-h-screen bg-background")}>
+      <OfflineBanner />
       <main className="min-h-screen">
         {children}
       </main>

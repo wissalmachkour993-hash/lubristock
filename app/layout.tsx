@@ -13,11 +13,11 @@ export const metadata: Metadata = {
   title: 'OCP - Gestion des Lubrifiants',
   description: 'Plateforme de suivi et d\'optimisation de la consommation des lubrifiants pour les équipements industriels OCP',
   generator: 'v0.app',
-  applicationName: 'Gestion Stock Lubrifiants - Benguerir',
+  applicationName: 'Gestion Lubrifiants OCP',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    title: 'Gestion Stock Lubrifiants - Benguerir',
+    title: 'LubriOCP',
     statusBarStyle: 'default',
   },
   formatDetection: {
@@ -45,10 +45,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
-  ],
+  themeColor: '#003366',
 }
 
 export default function RootLayout({

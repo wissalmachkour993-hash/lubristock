@@ -177,6 +177,13 @@ export const useStore = create<AppState>()(
 
       initializeData: () => {
         void (async () => {
+          const current = get();
+
+          if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            set({ initialized: true });
+            return;
+          }
+
           const [lubsR, interventionsR, categoriesR, equipementsR, alertsR, settingsR] =
             await Promise.allSettled([
               apiRequest<any[]>('/lubrifiants'),
@@ -187,13 +194,13 @@ export const useStore = create<AppState>()(
               apiRequest<Record<string, string>>('/settings'),
             ]);
 
-          const lubs = lubsR.status === 'fulfilled' ? lubsR.value : [];
-          const interventions = interventionsR.status === 'fulfilled' ? interventionsR.value : [];
+          const lubs = lubsR.status === 'fulfilled' ? lubsR.value : null;
+          const interventions = interventionsR.status === 'fulfilled' ? interventionsR.value : null;
           const categories = categoriesR.status === 'fulfilled' ? categoriesR.value : [];
-          const equipements = equipementsR.status === 'fulfilled' ? equipementsR.value : [];
-          const alerts = alertsR.status === 'fulfilled' ? alertsR.value : [];
+          const equipements = equipementsR.status === 'fulfilled' ? equipementsR.value : null;
+          const alerts = alertsR.status === 'fulfilled' ? alertsR.value : null;
           const settings =
-            settingsR.status === 'fulfilled' ? settingsR.value : { theme: 'clear' as const };
+            settingsR.status === 'fulfilled' ? settingsR.value : null;
 
           const rejected = [
             lubsR.status === 'rejected' && 'lubrifiants',
@@ -204,15 +211,18 @@ export const useStore = create<AppState>()(
             settingsR.status === 'rejected' && 'settings',
           ].filter(Boolean) as string[];
 
-          // Mode "sans backend" : ne pas spammer la console avec 6 erreurs si l'API est indisponible.
           if (rejected.length > 0) {
-            console.warn(`[store] API indisponible, chargement local vide (${rejected.join(', ')}).`);
+            console.warn(
+              `[store] API indisponible — conservation des données locales (${rejected.join(', ')}).`
+            );
           }
 
-          const categoryById = new Map(categories.map((c) => [c.id, c.nom]));
+          const categoryById = new Map(
+            (categories.length ? categories : []).map((c: { id: string; nom: string }) => [c.id, c.nom])
+          );
 
-          set({
-            lubrifiants: lubs.map((l) => ({
+          const mapLubs = (rows: typeof lubs) =>
+            rows!.map((l) => ({
               id: l.id,
               nom: l.nom,
               stockActuel: Number(l.stockActuel) || 0,
@@ -224,8 +234,10 @@ export const useStore = create<AppState>()(
               unite: l.unite,
               prixUnitaire: Number(l.prixUnitaire) || 0,
               dateMAJ: new Date(l.derniereMiseAJour).toISOString().slice(0, 10),
-            })),
-            interventions: interventions.map((i) => ({
+            }));
+
+          const mapInterventions = (rows: typeof interventions) =>
+            rows!.map((i) => ({
               id: i.id,
               date: new Date(i.date).toISOString().slice(0, 10),
               engin: i.equipement?.nom ?? i.equipementId,
@@ -237,28 +249,42 @@ export const useStore = create<AppState>()(
                   ? 'Vidange'
                   : i.type === 'ravitaillement'
                     ? 'Ravitaillement'
-                    : 'Appoint',
+                    : ('Appoint' as const),
               quantite: Number(i.quantite) || 0,
               responsable: i.responsable,
               observation: i.observation ?? '',
-            })),
-            engins: equipements.map((e) => ({
+            }));
+
+          const mapEngins = (rows: typeof equipements) =>
+            rows!.map((e) => ({
               id: e.id,
               nom: e.nom,
               categorie: categoryById.get(e.categorieId) ?? 'N/A',
               lubrifiantRecommande: 'Huile moteur 140',
               heuresService: 0,
-              statut: e.actif ? 'Actif' : 'Inactif',
+              statut: e.actif ? ('Actif' as const) : ('Inactif' as const),
               derniereLubrification: new Date().toISOString().slice(0, 10),
-            })),
-            alertes: alerts.map((a, idx) => ({
-              id: `alert-${idx}`,
-              type: a.type === 'stock_critique' ? 'stock_critique' : a.type === 'stock_faible' ? 'stock_faible' : 'anomalie',
-              message: a.message,
-              date: new Date().toISOString().slice(0, 10),
-              lu: false,
-            })),
-            darkMode: (settings.theme ?? 'clear') === 'sombre',
+            }));
+
+          set({
+            lubrifiants: lubs ? mapLubs(lubs) : current.lubrifiants,
+            interventions: interventions ? mapInterventions(interventions) : current.interventions,
+            engins: equipements ? mapEngins(equipements) : current.engins,
+            alertes: alerts
+              ? alerts.map((a, idx) => ({
+                  id: `alert-${idx}`,
+                  type:
+                    a.type === 'stock_critique'
+                      ? 'stock_critique'
+                      : a.type === 'stock_faible'
+                        ? 'stock_faible'
+                        : 'anomalie',
+                  message: a.message,
+                  date: new Date().toISOString().slice(0, 10),
+                  lu: false,
+                }))
+              : current.alertes,
+            darkMode: settings ? (settings.theme ?? 'clear') === 'sombre' : current.darkMode,
             initialized: true,
           });
         })();
@@ -341,7 +367,18 @@ export const useStore = create<AppState>()(
             const cat = categories.find((c) => c.nom === intervention.categorie);
             const eq = equipements.find((e) => e.nom === intervention.engin);
             const lub = lubs.find((l) => l.nom === intervention.lubrifiant);
-            if (!cat || !eq || !lub) return;
+            if (!cat || !eq || !lub) {
+              set((state) => ({
+                interventions: [
+                  {
+                    ...intervention,
+                    id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                  },
+                  ...state.interventions,
+                ],
+              }));
+              return;
+            }
 
             await apiRequest('/interventions', {
               method: 'POST',
@@ -532,8 +569,20 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'ocp-lubrifiant-storage',
-      onRehydrateStorage: () => () => {
+      partialize: (state) => ({
+        lubrifiants: state.lubrifiants,
+        interventions: state.interventions,
+        gaugeOperations: state.gaugeOperations,
+        engins: state.engins,
+        alertes: state.alertes,
+        darkMode: state.darkMode,
+        initialized: state.initialized,
+      }),
+      onRehydrateStorage: () => (state) => {
         migrateLegacyGaugeOperationsOnce();
+        if (state && (state.interventions.length > 0 || state.lubrifiants.length > 0)) {
+          useStore.setState({ initialized: true });
+        }
       },
     }
   )

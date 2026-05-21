@@ -1,4 +1,4 @@
-import { countDrainIntervalAnomalies } from "./drain-interval-anomalies";
+import { countDashboardAnomalies } from "./dashboard-anomalies";
 import { Intervention, Lubrifiant } from "./types";
 
 const MONTHS_FR = ["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aou", "Sep", "Oct", "Nov", "Dec"];
@@ -131,9 +131,9 @@ export function computeCategoryConsumption(interventions: Intervention[]) {
     .sort((a, b) => b.consommation - a.consommation);
 }
 
-/** Nombre d’anomalies pilotage vidange (écarts vs intervalles horaires recommandés par type d’huile). */
+/** Nombre d’anomalies (référence OCP + écarts intervalle vidange horaire). */
 export function computeAnomalyCount(interventions: Intervention[]) {
-  return countDrainIntervalAnomalies(interventions);
+  return countDashboardAnomalies(interventions);
 }
 
 export function computeDashboardKPIs(lubrifiants: Lubrifiant[], interventions: Intervention[], machinesActives: number) {

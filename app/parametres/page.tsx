@@ -151,11 +151,11 @@ export default function ParametresPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
-              Partagez l&apos;adresse <span className="font-mono text-foreground">/download</span> avec vos équipes pour
+              Partagez l&apos;adresse <span className="font-mono text-foreground">/install</span> avec vos équipes pour
               installer LubriStock comme une application.
             </p>
             <Button asChild className="shrink-0">
-              <Link href="/download">
+              <Link href="/install">
                 <Smartphone className="mr-2 h-4 w-4" />
                 Lien de téléchargement
               </Link>

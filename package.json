@@ -9,7 +9,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "pwa:icons": "node scripts/generate-pwa-icons.js"
+    "pwa:icons": "node scripts/generate-pwa-icons.js",
+    "apk:server": "npm --prefix apk-server start",
+    "apk:server:dev": "npm --prefix apk-server run dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -41,6 +43,7 @@
     "@radix-ui/react-toggle-group": "1.1.11",
     "@radix-ui/react-tooltip": "1.2.8",
     "@vercel/analytics": "1.6.1",
+    "@vercel/node": "^5.8.3",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -66,6 +69,10 @@
     "xlsx-js-style": "^1.2.0",
     "zod": "^3.24.1",
     "zustand": "^5.0.12"
+  },
+  "overrides": {
+    "lodash.isequal": "npm:lodash@^4.17.21",
+    "fstream": "npm:tar-stream@^3.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",

@@ -7,12 +7,12 @@ import { useStore } from "@/lib/store";
 import { AlertOctagon, Wrench, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { computeDrainIntervalAnomalies } from "@/lib/drain-interval-anomalies";
+import { computeDashboardAnomalies } from "@/lib/dashboard-anomalies";
 
 export function AnomalyDetection() {
   const { interventions } = useStore();
 
-  const anomalies = useMemo(() => computeDrainIntervalAnomalies(interventions), [interventions]);
+  const anomalies = useMemo(() => computeDashboardAnomalies(interventions), [interventions]);
 
   const criticalCount = anomalies.filter((a) => a.severity === "critical").length;
   const warningCount = anomalies.filter((a) => a.severity === "warning").length;
@@ -47,8 +47,8 @@ export function AnomalyDetection() {
       <CardContent className="space-y-3">
         {anomalies.length === 0 ? (
           <p className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-            Aucune anomalie d&apos;échéancier de vidange détectée sur les interventions enregistrées.
-            Importez ou saisissez des vidanges avec compteur horaire pour activer le suivi.
+            Aucune anomalie détectée. Les seuils sont comparés au tableau de référence OCP
+            (appoints cumulés et fréquence de vidange) à chaque enregistrement d&apos;intervention.
           </p>
         ) : (
           anomalies.map((anomaly) => {

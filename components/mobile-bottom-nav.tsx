@@ -9,7 +9,7 @@ const items = [
   { href: "/inventaire", label: "Inventaire", icon: Package },
   { href: "/interventions", label: "Interventions", icon: Wrench },
   { href: "/parametres", label: "Paramètres", icon: Settings },
-  { href: "/download", label: "Obtenir l'app", icon: Smartphone },
+  { href: "/install", label: "Installer", icon: Smartphone },
 ];
 
 export function MobileBottomNav() {

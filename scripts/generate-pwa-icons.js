@@ -33,7 +33,7 @@ async function main() {
       bottom: pad,
       left: pad,
       right: pad,
-      background: { r: 15, g: 23, b: 42, alpha: 1 },
+      background: { r: 0, g: 51, b: 102, alpha: 1 },
     })
     .png()
     .toFile(path.join(outDir, 'icon-maskable-512.png'))
