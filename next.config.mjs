@@ -16,7 +16,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const nextConfig = {
+const nextConfig = { 
   outputFileTracingRoot: path.join(__dirname),
   typescript: {
     ignoreBuildErrors: true,
@@ -24,7 +24,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins: allowedDevOriginsFromApiUrl(),
+  allowedDevOrigins: [
+    ...allowedDevOriginsFromApiUrl(),
+    '192.168.3.96',
+    '192.168.1.85',
+  ],
 }
 
 export default nextConfig

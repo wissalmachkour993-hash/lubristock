@@ -40,7 +40,7 @@ import { addOtHistoryEntry } from "@/lib/ot-history";
 type InterventionSoumiseType = "Vidange" | "Appoint";
 
 export default function InterventionsPage() {
-  const { interventions, addIntervention, lubrifiants } = useStore();
+ const { lubrifiants, interventions, addIntervention, addAlerte } = useStore();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -72,21 +72,58 @@ export default function InterventionsPage() {
     e.preventDefault();
     
     const lubrifiant = lubrifiants.find((l) => l.nom === formData.lubrifiant);
+
     const sortieCuve =
       formData.type === "Vidange" || formData.type === "Appoint";
-
-    if (sortieCuve && lubrifiant && lubrifiant.stockActuel < formData.quantite) {
-      toast.error(`Stock insuffisant! Disponible: ${lubrifiant.stockActuel} ${lubrifiant.unite}`);
-      return;
-    }
-
+    
+    const stockInsuffisant =
+      sortieCuve &&
+      lubrifiant &&
+      Number(lubrifiant.stockActuel) < Number(formData.quantite);
+    
+    const observationStock = stockInsuffisant && lubrifiant
+      ? `⚠ Stock insuffisant lors de l'intervention. Stock disponible : ${lubrifiant.stockActuel} ${lubrifiant.unite}. Quantité déclarée : ${formData.quantite} ${lubrifiant.unite}. Intervention déjà réalisée sur le terrain. Remplissage de la citerne requis.`
+      : "";
+    
     const interventionPayload = {
       id: Date.now().toString(),
       ...formData,
+      observation: stockInsuffisant
+        ? formData.observation
+          ? `${formData.observation} | ${observationStock}`
+          : observationStock
+        : formData.observation,
     };
-
+    
     addIntervention(interventionPayload);
-
+    
+    if (stockInsuffisant && lubrifiant) {
+      addAlerte({
+        id: `alerte-stock-${Date.now()}`,
+        type: "stock_critique",
+        message: `Stock insuffisant pour ${lubrifiant.nom}. L'intervention a été enregistrée malgré un stock disponible de ${lubrifiant.stockActuel} ${lubrifiant.unite}. Remplissage de la citerne requis.`,
+        date: new Date().toISOString().slice(0, 10),
+        lu: false,
+      });
+    
+      toast.warning(
+        "Intervention enregistrée, mais stock insuffisant. Remplissage de la citerne requis."
+      );
+    }
+    if (typeof window !== "undefined") {
+      const savedInterventions = JSON.parse(
+        localStorage.getItem("lubriocp_interventions") || "[]"
+      );
+    
+      const updatedInterventions = [interventionPayload, ...savedInterventions];
+    
+      localStorage.setItem(
+        "lubriocp_interventions",
+        JSON.stringify(updatedInterventions)
+      );
+    
+      window.dispatchEvent(new Event("lubriocp_interventions_updated"));
+    }
     const stockPhysiqueAvant = lubrifiant?.stockActuel ?? 0;
     try {
       const { generateOtPdf } = await import("@/lib/ot-pdf");
@@ -98,11 +135,21 @@ export default function InterventionsPage() {
         stockPhysiqueAvant,
         intervention: interventionPayload,
       });
-      toast.success(
-        `Intervention enregistrée avec succès. OT #${counters.otNumber} / Réservation #${counters.reservationNumber} généré.`
-      );
+      if (!stockInsuffisant) {
+        toast.success(
+          `Intervention enregistrée avec succès. OT #${counters.otNumber} / Réservation #${counters.reservationNumber} généré.`
+        );
+      } else {
+        toast.warning(
+          `Intervention enregistrée avec stock insuffisant. OT #${counters.otNumber} / Réservation #${counters.reservationNumber} généré. Remplissage de la citerne requis.`
+        );
+      }
     } catch {
-      toast.warning("Intervention enregistrée, mais la génération OT PDF a échoué.");
+      toast.warning(
+        stockInsuffisant
+          ? "Intervention enregistrée avec stock insuffisant. Génération OT PDF échouée. Remplissage de la citerne requis."
+          : "Intervention enregistrée, mais la génération OT PDF a échoué."
+      );
     }
 
     setIsDialogOpen(false);

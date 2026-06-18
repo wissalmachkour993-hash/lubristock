@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
-import { PwaRegister } from '@/components/pwa-register'
+import { Providers } from '../components/providers'
+
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -56,9 +57,10 @@ export default function RootLayout({
   return (
     <html lang="fr" className="bg-background">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <PwaRegister />
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <Providers>
+          {children}
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </Providers>
       </body>
     </html>
   )

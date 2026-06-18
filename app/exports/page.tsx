@@ -9,7 +9,19 @@ import { exportMonthlyReport, exportToExcel, exportWeeklyReport } from "@/lib/ex
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Download, FileSpreadsheet, FileText, Upload, FileDown } from "lucide-react";
+import {
+  AlertTriangle,
+  Calendar,
+  ClipboardList,
+  Download,
+  Droplets,
+  FileDown,
+  FileSpreadsheet,
+  FileText,
+  Package,
+  Upload,
+  Wrench,
+} from "lucide-react";
 import { getOtHistory, type OtHistoryEntry } from "@/lib/ot-history";
 import { downloadOtPdfFromHistory } from "@/lib/ot-pdf";
 
@@ -18,6 +30,30 @@ export default function ExportsPage() {
   const excelInputRef = useRef<HTMLInputElement | null>(null);
   const [templateLoading, setTemplateLoading] = useState(false);
   const [otHistory, setOtHistory] = useState<OtHistoryEntry[]>([]);
+
+  const totalConsomme = interventions.reduce(
+    (total, intervention) => total + Number(intervention.quantite || 0),
+    0
+  );
+  
+  const lubrifiantsCritiques = lubrifiants.filter((lubrifiant) => {
+    const stockActuel = Number(lubrifiant.stockActuel || 0);
+  
+    const stockMin = Number(
+      (lubrifiant as any).stockMin ??
+        (lubrifiant as any).stockMinimum ??
+        (lubrifiant as any).seuilMin ??
+        (lubrifiant as any).min ??
+        0
+    );
+  
+    return stockMin > 0 && stockActuel <= stockMin;
+  }).length;
+  
+  const recommandations =
+    interventions.length === 0
+      ? "Aucune intervention enregistrée pour le moment."
+      : "Les rapports permettent de suivre les consommations, identifier les lubrifiants critiques et préparer les actions de réapprovisionnement.";
 
   useEffect(() => {
     setOtHistory(getOtHistory());
@@ -90,216 +126,309 @@ export default function ExportsPage() {
 
   return (
     <AppLayout>
-      <Header title="Export" subtitle="Import et export des données" />
+      <Header
+  title="Rapports & Exports"
+  subtitle="Suivi hebdomadaire, mensuel et export des données de lubrification"
+/>
 
-      <div className="p-6">
-        <div className="mx-auto w-full max-w-6xl space-y-6">
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-                  Centre Import / Export
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Importez l’historique et exportez les rapports en 1 clic.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-                  {lubrifiants.length} lubrifiants
-                </span>
-                <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-                  {interventions.length} interventions
-                </span>
-              </div>
-            </div>
-          </div>
+<div className="p-4 md:p-6">
+  <div className="mx-auto w-full max-w-7xl space-y-6">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            Centre de reporting opérationnel
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Analyse des consommations, suivi des interventions et génération des rapports.
+          </p>
+        </div>
 
-          <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
-            <Card className="overflow-hidden border-slate-200/80 shadow-sm dark:border-slate-800">
-              <CardHeader className="border-b border-slate-100 bg-slate-50/50 py-5 dark:border-slate-800 dark:bg-slate-900/30">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Upload className="h-4 w-4 text-cyan-600" />
-                  Import Excel
-                </CardTitle>
-                <CardDescription>
-                  Téléchargez le modèle, puis importez votre fichier d’interventions.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                        Historique interventions (Excel)
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                        Modèle conseillé pour éviter les erreurs de colonnes. Formats acceptés : .xlsx, .xls
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 flex-wrap gap-2">
-                      <Button
-                        variant="secondary"
-                        disabled={templateLoading}
-                        onClick={() => void handleDownloadTemplate()}
-                        className="h-9"
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        {templateLoading ? "Téléchargement…" : "Modèle"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => excelInputRef.current?.click()}
-                        className="h-9"
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Importer
-                      </Button>
-                    </div>
-                  </div>
-                  <input
-                    ref={excelInputRef}
-                    type="file"
-                    accept=".xlsx,.xls"
-                    className="hidden"
-                    onChange={handleImportExcel}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-4">
-              <div className="relative h-40 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <img
-                  src="/api/landing-images/site"
-                  alt="Site OCP Benguerir"
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/15 to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-xs font-semibold text-white">Benguerir</p>
-                  <p className="text-[11px] text-white/80">Import & rapports Excel</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="border-slate-200/80 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
-                      <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        Export Excel complet
-                      </p>
-                      <p className="text-xs text-muted-foreground">Lubrifiants + interventions</p>
-                    </div>
-                  </div>
-                </div>
-                <Button onClick={handleExportExcel} className="mt-4 w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Télécharger
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-200/80 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                      <Calendar className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        Bilan hebdomadaire
-                      </p>
-                      <p className="text-xs text-muted-foreground">Excel : 7 derniers jours · PDF : 7 jours (2 pages)</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-col gap-2">
-                  <Button onClick={handleExportWeekly} variant="outline" className="w-full">
-                    <Download className="mr-2 h-4 w-4" />
-                    Télécharger Excel
-                  </Button>
-                  <Button onClick={() => void handleExportWeeklyPdf()} className="w-full bg-[#1447E6] hover:bg-[#1447E6]/90">
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Rapport PDF (graphes)
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-slate-200/80 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30">
-                      <FileText className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        Rapport mensuel
-                      </p>
-                      <p className="text-xs text-muted-foreground">Synthèse du mois</p>
-                    </div>
-                  </div>
-                </div>
-                <Button onClick={handleExportMonthly} variant="outline" className="mt-4 w-full">
-                  <Download className="mr-2 h-4 w-4" />
-                  Télécharger
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Historique PDF des OT générés</CardTitle>
-              <CardDescription>
-                Consultez et retéléchargez les bons OT générés depuis les interventions.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {otHistory.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Aucun PDF OT généré pour le moment.</p>
-              ) : (
-                <div className="space-y-2">
-                  {otHistory.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex flex-col gap-2 rounded-lg border border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                          OT #{entry.otNumber} - {entry.intervention.engin}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(entry.generatedAt).toLocaleString("fr-FR")} - {entry.fileName}
-                        </p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void handleDownloadOtFromHistory(entry)}
-                      >
-                        <Download className="mr-2 h-4 w-4" />
-                        Ouvrir PDF
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+            {lubrifiants.length} lubrifiants
+          </span>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+            {interventions.length} interventions
+          </span>
         </div>
       </div>
-    </AppLayout>
+    </div>
+
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+      <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
+              <Package className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{lubrifiants.length}</p>
+              <p className="text-xs text-muted-foreground">Lubrifiants suivis</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30">
+              <Wrench className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{interventions.length}</p>
+              <p className="text-xs text-muted-foreground">Interventions</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30">
+              <Droplets className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{totalConsomme} kg</p>
+              <p className="text-xs text-muted-foreground">Quantité consommée</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/30">
+              <ClipboardList className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{otHistory.length}</p>
+              <p className="text-xs text-muted-foreground">OT générés</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-[#1447E6]" />
+          Rapports de consommation
+        </CardTitle>
+        <CardDescription>
+          Générez des bilans hebdomadaires ou mensuels pour le suivi des lubrifiants.
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                  Bilan hebdomadaire
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Analyse des interventions et consommations des 7 derniers jours.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <Button onClick={handleExportWeekly} variant="outline" className="w-full">
+                <Download className="mr-2 h-4 w-4" />
+                Exporter Excel
+              </Button>
+
+              <Button
+                onClick={() => void handleExportWeeklyPdf()}
+                className="w-full bg-[#1447E6] hover:bg-[#1447E6]/90"
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                PDF avec graphes
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30">
+                <FileText className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                  Rapport mensuel
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Synthèse mensuelle des consommations, interventions et besoins de réapprovisionnement.
+                </p>
+              </div>
+            </div>
+
+            <Button onClick={handleExportMonthly} variant="outline" className="mt-5 w-full">
+              <Download className="mr-2 h-4 w-4" />
+              Télécharger rapport mensuel
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    <div className="grid gap-5 lg:grid-cols-2">
+      <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5 text-cyan-600" />
+            Import des interventions
+          </CardTitle>
+          <CardDescription>
+            Intégrez l’historique terrain à partir d’un fichier Excel.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              Historique interventions
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Utilisez le modèle conseillé pour éviter les erreurs de colonnes. Formats acceptés : .xlsx, .xls.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                disabled={templateLoading}
+                onClick={() => void handleDownloadTemplate()}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {templateLoading ? "Téléchargement…" : "Télécharger modèle"}
+              </Button>
+
+              <Button variant="outline" onClick={() => excelInputRef.current?.click()}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importer fichier
+              </Button>
+            </div>
+
+            <input
+              ref={excelInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={handleImportExcel}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
+            Export global
+          </CardTitle>
+          <CardDescription>
+            Export complet des lubrifiants, stocks et interventions.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              Fichier Excel complet
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Ce fichier regroupe l’inventaire des lubrifiants et l’historique des interventions.
+            </p>
+
+            <Button onClick={handleExportExcel} className="mt-4 w-full">
+              <Download className="mr-2 h-4 w-4" />
+              Télécharger le fichier Excel
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          Observations et recommandations
+        </CardTitle>
+        <CardDescription>
+          Synthèse automatique pour l’aide à la décision.
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <p>{recommandations}</p>
+        <p>
+          {lubrifiantsCritiques > 0
+            ? `${lubrifiantsCritiques} lubrifiant(s) sont en niveau critique ou proche du stock minimum.`
+            : "Aucun lubrifiant critique détecté selon les seuils disponibles."}
+        </p>
+        <p>
+          {otHistory.length === 0
+            ? "Aucun OT PDF généré pour le moment."
+            : "Les OT générés sont disponibles dans l’historique pour consultation ou réimpression."}
+        </p>
+      </CardContent>
+    </Card>
+
+    <Card className="border-slate-200/80 shadow-sm dark:border-slate-800">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Historique PDF des OT générés</CardTitle>
+        <CardDescription>
+          Consultez et retéléchargez les bons OT générés depuis les interventions.
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        {otHistory.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucun PDF OT généré pour le moment.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {otHistory.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex flex-col gap-2 rounded-lg border border-slate-200 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800"
+              >
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    OT #{entry.otNumber} - {entry.intervention.engin}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(entry.generatedAt).toLocaleString("fr-FR")} - {entry.fileName}
+                  </p>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleDownloadOtFromHistory(entry)}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Télécharger PDF
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </div>
+</div>
+</AppLayout>
   );
 }
-

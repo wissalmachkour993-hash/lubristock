@@ -1,12 +1,15 @@
 "use client";
 
 import { useStore } from "@/lib/store";
-import { Bell, Search, Menu, LayoutDashboard, Package, Wrench, Settings, House } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
+import { getNavItemsForRole } from "@/lib/navigation";
+import { getRoleLabel, getUserInitials } from "@/lib/auth";
+import { Bell, Search, Menu, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,18 +31,21 @@ interface HeaderProps {
 
 export function Header({ title, subtitle }: HeaderProps) {
   const { alertes, markAlerteAsRead } = useStore();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const unreadAlertes = alertes.filter((a) => !a.lu);
   const pathname = usePathname();
 
-  const mobileNavigation = [
-    { name: "Dashboard", href: "/tableau-de-bord", icon: LayoutDashboard },
-    { name: "Inventaire", href: "/inventaire", icon: Package },
-    { name: "Interventions", href: "/interventions", icon: Wrench },
-    { name: "Paramètres", href: "/parametres", icon: Settings },
-  ];
+  const mobileNavigation = user ? getNavItemsForRole(user.role) : [];
+  const showNotifications = user?.role === "chef";
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/login");
+  };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 md:h-16 md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 md:h-16 md:px-6 md:pl-[calc(16rem+1.5rem)]">
       <div className="flex items-center gap-2">
         <Sheet>
           <SheetTrigger asChild>
@@ -65,81 +71,100 @@ export function Header({ title, subtitle }: HeaderProps) {
                   </Link>
                 );
               })}
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="mt-4 w-full justify-start gap-2 text-destructive hover:text-destructive"
+              >
+                <LogOut className="h-4 w-4" />
+                Déconnexion
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
         <div>
-        <h1 className="text-base md:text-2xl font-bold text-foreground">{title}</h1>
-        {subtitle && (
-          <p className="hidden md:block text-sm text-muted-foreground">{subtitle}</p>
-        )}
-      </div>
+          <h1 className="text-base md:text-2xl font-bold text-foreground">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="hidden md:block text-sm text-muted-foreground">
+              {subtitle}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher..."
-            className="w-64 pl-9 bg-secondary"
-          />
-        </div>
+        {user?.role === "chef" && (
+          <div className="relative hidden md:block">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher..."
+              className="w-64 pl-9 bg-secondary"
+            />
+          </div>
+        )}
 
-        {/* Notifications */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              {unreadAlertes.length > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                >
-                  {unreadAlertes.length}
-                </Badge>
+        {showNotifications && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {unreadAlertes.length > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                  >
+                    {unreadAlertes.length}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              {unreadAlertes.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Aucune nouvelle alerte
+                </div>
+              ) : (
+                unreadAlertes.slice(0, 5).map((alerte) => (
+                  <DropdownMenuItem
+                    key={alerte.id}
+                    onClick={() => markAlerteAsRead(alerte.id)}
+                    className="flex flex-col items-start gap-1 p-3"
+                  >
+                    <span className="text-sm font-medium">{alerte.message}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {alerte.date}
+                    </span>
+                  </DropdownMenuItem>
+                ))
               )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            {unreadAlertes.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Aucune nouvelle alerte
-              </div>
-            ) : (
-              unreadAlertes.slice(0, 5).map((alerte) => (
-                <DropdownMenuItem
-                  key={alerte.id}
-                  onClick={() => markAlerteAsRead(alerte.id)}
-                  className="flex flex-col items-start gap-1 p-3"
-                >
-                  <span className="text-sm font-medium">{alerte.message}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {alerte.date}
-                  </span>
-                </DropdownMenuItem>
-              ))
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
-        {/* User */}
-        <div className="flex items-center gap-2 md:gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-2 py-1.5 text-xs font-medium text-foreground transition hover:bg-secondary"
-          >
-            <House className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Accueil</span>
-          </Link>
-          <div className="hidden h-9 w-9 rounded-full bg-[#1447E6] text-white font-medium sm:flex items-center justify-center">
-            MA
+        {user && (
+          <div className="flex items-center gap-2 md:gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="hidden sm:inline-flex gap-2"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Déconnexion
+            </Button>
+            <div className="hidden h-9 w-9 rounded-full bg-[#1447E6] text-white font-medium sm:flex items-center justify-center">
+              {getUserInitials(user)}
+            </div>
+            <div className="hidden lg:block">
+              <p className="text-sm font-medium">{user.displayName}</p>
+              <p className="text-xs text-muted-foreground">
+                {getRoleLabel(user.role)}
+              </p>
+            </div>
           </div>
-          <div className="hidden lg:block">
-            <p className="text-sm font-medium">ELORCHE Ahmed</p>
-            <p className="text-xs text-muted-foreground">Chef d&apos;atelier Station de service</p>
-          </div>
-        </div>
+        )}
       </div>
     </header>
   );

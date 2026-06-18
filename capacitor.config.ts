@@ -1,9 +1,13 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.Lubriocp.app',
+  appId: 'com.wissal.lubriocp',
   appName: 'LubriOCP',
-  webDir: 'public'
+  webDir: 'public',
+  server: {
+    url: 'https://lubriocp.vercel.app',
+    cleartext: false
+  }
 };
 
 export default config;
