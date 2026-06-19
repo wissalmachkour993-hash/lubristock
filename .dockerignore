@@ -8,5 +8,4 @@ node_modules
 backend/node_modules
 apk-server/node_modules
 *.md
-Dockerfile
 .dockerignore

@@ -2,18 +2,16 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Dépendances natives pour Next.js / sharp sur Alpine
-RUN apk add --no-cache libc6-compat
+COPY backend/package.json backend/package-lock.json ./
 
-COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY . .
+COPY backend ./
+
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 4000
 
 ENV NODE_ENV=production
-ENV PORT=3000
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "start"]
