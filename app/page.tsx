@@ -69,8 +69,9 @@ export default function LandingPage() {
   }, []);
 
   const featureLinks = useMemo(() => {
-    if (!user) return [];
-    return getNavItemsForRole(user.role)
+    const role = user?.role ?? "chef";
+
+return getNavItemsForRole(role)
     .filter((item) => item.href !== "/" && item.href !== "/install")
       .map((item) => ({
         label: item.name,
