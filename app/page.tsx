@@ -59,7 +59,11 @@ export default function LandingPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [now, setNow] = useState<Date | null>(null);
-
+  useEffect(() => {
+    if (mounted && !user) {
+      router.replace("/login");
+    }
+  }, [mounted, user, router]);
   useEffect(() => {
     setMounted(true);
     const updateClock = () => setNow(new Date());
@@ -69,9 +73,10 @@ export default function LandingPage() {
   }, []);
 
   const featureLinks = useMemo(() => {
-    const role = user?.role ?? "chef";
-
-return getNavItemsForRole(role)
+    if (!user) return [];
+  
+    return getNavItemsForRole(user.role)
+    
     .filter((item) => item.href !== "/" && item.href !== "/install")
       .map((item) => ({
         label: item.name,
