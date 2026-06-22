@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("postgresql://neondb_owner:npg_WbGB7iUz5IwO@ep-royal-hill-atk4aic3-pooler.c-9.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
 }
 
 model Intervention {
