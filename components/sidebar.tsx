@@ -103,7 +103,7 @@ export function Sidebar() {
         <div className="border-t border-border p-4 space-y-2">
           {!collapsed && (
             <div className="rounded-lg bg-sidebar-accent px-3 py-2">
-              <p className="text-sm font-medium">{user.displayName}</p>
+              <p className="text-sm font-medium">Utilisateur</p>
               <p className="text-xs text-muted-foreground">
                 {getRoleLabel(user.role)}
               </p>

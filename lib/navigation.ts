@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Package,
   Settings,
-  Smartphone,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -62,12 +61,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: AlertTriangle,
     roles: ["chef"],
   },
-  {
-    name: "App sur téléphone",
-    href: "/install",
-    icon: Smartphone,
-    roles: ["chef"],
-  },
+
 ];
 
 export function getNavItemsForRole(role: UserRole): NavItem[] {

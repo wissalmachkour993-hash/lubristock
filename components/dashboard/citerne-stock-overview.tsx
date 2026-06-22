@@ -95,8 +95,8 @@ export function CiterneStockOverview() {
                       <span className="text-sm text-muted-foreground">kg</span>
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      SAP {ref.codeSap} — {pct.toFixed(0)} % vs max tableau
-                    </p>
+  SAP {ref.codeSap} — {pct.toFixed(0)} % vs max tableau
+</p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">{sub}</p>
                   </CardContent>
                 </Card>

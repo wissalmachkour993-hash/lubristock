@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 import { OfflineBanner } from "@/components/offline-banner";
-import { Sidebar } from "@/components/sidebar";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { useAuth } from "@/components/auth-provider";
 
@@ -32,8 +31,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className={cn("min-h-screen bg-background")}>
       <OfflineBanner />
-      {user && <Sidebar />}
-      <main className={cn("min-h-screen", user && "md:pl-64 pb-16 md:pb-0")}>
+      <main className={cn("min-h-screen w-full", user && "pb-16 md:pb-0")}>
         {children}
       </main>
       {user && <MobileBottomNav />}

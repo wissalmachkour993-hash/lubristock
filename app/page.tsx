@@ -10,7 +10,6 @@ import {
 import { useAuth } from "@/components/auth-provider";
 import { getRoleLabel, getUserInitials } from "@/lib/auth";
 import { getNavItemsForRole } from "@/lib/navigation";
-import { Sidebar } from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 
 const featureStyles: Record<
@@ -52,11 +51,7 @@ const featureStyles: Record<
     color: "text-amber-600",
     bgColor: "bg-amber-100/90 dark:bg-amber-900/40",
   },
-  "App sur téléphone": {
-    description: "Installation PWA",
-    color: "text-indigo-600",
-    bgColor: "bg-indigo-100/90 dark:bg-indigo-900/40",
-  },
+  
 };
 
 export default function LandingPage() {
@@ -76,7 +71,7 @@ export default function LandingPage() {
   const featureLinks = useMemo(() => {
     if (!user) return [];
     return getNavItemsForRole(user.role)
-      .filter((item) => item.href !== "/")
+    .filter((item) => item.href !== "/" && item.href !== "/install")
       .map((item) => ({
         label: item.name,
         href: item.href,
@@ -113,15 +108,14 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      {user && <Sidebar />}
-      <main className={user ? "md:pl-64" : ""}>
+      <main className="w-full">
         <section className="relative min-h-screen overflow-hidden">
           <div className="absolute inset-0 bg-[linear-gradient(120deg,#f8fafc,#e2e8f0)]" />
 
           <div className="absolute left-0 top-0 h-[240px] w-full lg:h-[280px]">
             <img
               src="/api/landing-images/site"
-              alt="Site industriel OCP Benguerir"
+              
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-slate-950/45 via-slate-950/25 to-slate-100" />
@@ -140,10 +134,10 @@ export default function LandingPage() {
                         {getUserInitials(user)}
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{user.displayName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {getRoleLabel(user.role)}
-                        </p>
+                      <p className="text-sm font-medium">Utilisateur</p>
+<p className="text-xs text-muted-foreground">
+  {getRoleLabel(user.role)}
+</p>
                       </div>
                     </div>
                     <Button
@@ -180,7 +174,7 @@ export default function LandingPage() {
                 <div className="relative h-24 overflow-hidden rounded-xl">
                   <img
                     src="/api/landing-images/site"
-                    alt="Site industriel OCP Benguerir"
+                  
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-[#0f172a]/20" />

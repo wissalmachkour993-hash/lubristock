@@ -43,7 +43,7 @@ export default function LoginPage() {
       <div className="absolute left-0 top-0 h-48 w-full md:h-64">
         <img
           src="/api/landing-images/site"
-          alt="Site industriel OCP Benguerir"
+        
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-slate-950/30 to-slate-100 dark:to-slate-950" />
@@ -58,7 +58,7 @@ export default function LoginPage() {
               className="h-14 w-14 object-contain"
             />
             <div className="text-left">
-              <p className="text-2xl font-bold text-[#22c55e]">LubriOCP</p>
+              <p className="text-2xl text-green-900-font-bold text-[#013220]">LubriOCP</p>
               <p className="text-xs text-muted-foreground">
                 Gestion du ravitaillement en lubrifiants
               </p>
@@ -147,7 +147,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Démonstration PFE — comptes de test disponibles sur demande.
+
           </p>
         </CardContent>
       </Card>

@@ -4,7 +4,7 @@ import { useStore } from "@/lib/store";
 import { useAuth } from "@/components/auth-provider";
 import { getNavItemsForRole } from "@/lib/navigation";
 import { getRoleLabel, getUserInitials } from "@/lib/auth";
-import { Bell, Search, Menu, LogOut } from "lucide-react";
+import { Bell, Search, Menu, LogOut, House } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ export function Header({ title, subtitle }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 md:h-16 md:px-6 md:pl-[calc(16rem+1.5rem)]">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:h-16 md:px-8">
       <div className="flex items-center gap-2">
         <Sheet>
           <SheetTrigger asChild>
@@ -82,6 +82,13 @@ export function Header({ title, subtitle }: HeaderProps) {
             </div>
           </SheetContent>
         </Sheet>
+        {user?.role === "chef" && (
+  <Link href="/">
+    <Button variant="ghost" size="icon" title="Accueil">
+      <House className="h-5 w-5" />
+    </Button>
+  </Link>
+)}
         <div>
           <h1 className="text-base md:text-2xl font-bold text-foreground">
             {title}
@@ -158,11 +165,11 @@ export function Header({ title, subtitle }: HeaderProps) {
               {getUserInitials(user)}
             </div>
             <div className="hidden lg:block">
-              <p className="text-sm font-medium">{user.displayName}</p>
-              <p className="text-xs text-muted-foreground">
-                {getRoleLabel(user.role)}
-              </p>
-            </div>
+  <p className="text-sm font-medium">Utilisateur</p>
+  <p className="text-xs text-muted-foreground">
+    {getRoleLabel(user.role)}
+  </p>
+</div>
           </div>
         )}
       </div>

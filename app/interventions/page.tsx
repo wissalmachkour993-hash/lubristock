@@ -173,7 +173,7 @@ export default function InterventionsPage() {
         subtitle="Historique et enregistrement des interventions"
       />
 
-      <div className="p-4 md:p-6 space-y-6">
+<div className="w-full px-4 md:px-8 py-6 space-y-6">
         {/* Stats Cards */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
           <Card>

@@ -1,3 +1,23 @@
+function loadImageAsDataURL(src: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Impossible de créer le canvas"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = reject;
+    img.src = "/images/ocp-logo.png.png";
+  });
+}
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { Intervention } from "./types";
@@ -105,11 +125,11 @@ async function addOcpLogo(doc: jsPDF) {
       }
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       const pngData = canvas.toDataURL("image/png");
-      doc.addImage(pngData, "PNG", 8, 4, 26, 22, undefined, "FAST");
+      doc.addImage(pngData, "JPEG", 8, 4, 26, 22, undefined, "FAST");
       resolve();
     };
     img.onerror = () => resolve();
-    img.src = "/api/landing-images/ocp";
+    img.src = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/OCP%20logo-x5nfLttde4Q4qAg5RIHltvZYJOE32v.jpg";
   });
 }
 
