@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Intervention {
+  id              String   @id
+  date            String
+  engin           String
+  categorie       String
+  lubrifiant      String
+  compteurHoraire Int
+  type            String
+  quantite        Float
+  responsable     String
+  observation     String?
+  createdAt       DateTime @default(now())
+}

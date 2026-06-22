@@ -240,16 +240,21 @@ export const useStore = create<AppState>()(
             rows!.map((i) => ({
               id: i.id,
               date: new Date(i.date).toISOString().slice(0, 10),
-              engin: i.equipement?.nom ?? i.equipementId,
-              categorie: i.categorie?.nom ?? categoryById.get(i.categorieId) ?? i.categorieId,
-              lubrifiant: i.lubrifiant?.nom ?? i.lubrifiantId,
+              engin: i.engin ?? i.equipement?.nom ?? i.equipementId,
+categorie:
+  typeof i.categorie === "string"
+    ? i.categorie
+    : i.categorie?.nom ?? categoryById.get(i.categorieId) ?? i.categorieId,
+lubrifiant: i.lubrifiant ?? i.lubrifiant?.nom ?? i.lubrifiantId,
               compteurHoraire: Number(i.compteurHoraire) || 0,
-              type:
-                i.type === 'vidange'
+              type: (
+                i.type === 'vidange' || i.type === 'Vidange'
                   ? 'Vidange'
-                  : i.type === 'ravitaillement'
+                  : i.type === 'ravitaillement' || i.type === 'Ravitaillement'
                     ? 'Ravitaillement'
-                    : ('Appoint' as const),
+                    : 'Appoint'
+              ) as Intervention['type'],
+
               quantite: Number(i.quantite) || 0,
               responsable: i.responsable,
               observation: i.observation ?? '',
@@ -361,47 +366,25 @@ export const useStore = create<AppState>()(
       addIntervention: (intervention) => {
         void (async () => {
           try {
-            const categories = await apiRequest<any[]>('/categories');
-            const equipements = await apiRequest<any[]>('/equipements');
-            const lubs = await apiRequest<any[]>('/lubrifiants');
-            const cat = categories.find((c) => c.nom === intervention.categorie);
-            const eq = equipements.find((e) => e.nom === intervention.engin);
-            const lub = lubs.find((l) => l.nom === intervention.lubrifiant);
-            if (!cat || !eq || !lub) {
-              set((state) => ({
-                interventions: [
-                  {
-                    ...intervention,
-                    id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                  },
-                  ...state.interventions,
-                ],
-              }));
-              return;
-            }
-
             await apiRequest('/interventions', {
               method: 'POST',
               body: JSON.stringify({
+                id: intervention.id,
                 date: intervention.date,
-                categorieId: cat.id,
-                equipementId: eq.id,
-                lubrifiantId: lub.id,
-                type:
-                  intervention.type === 'Vidange'
-                    ? 'vidange'
-                    : intervention.type === 'Ravitaillement'
-                      ? 'ravitaillement'
-                      : 'appoint',
-                quantite: intervention.quantite,
+                engin: intervention.engin,
+                categorie: intervention.categorie,
+                lubrifiant: intervention.lubrifiant,
                 compteurHoraire: intervention.compteurHoraire,
+                type: intervention.type,
+                quantite: intervention.quantite,
                 responsable: intervention.responsable,
-                observation: intervention.observation,
+                observation: intervention.observation ?? '',
               }),
             });
+      
             get().initializeData();
           } catch {
-            // Fallback local si API indisponible : on enregistre la saisie dans le store.
+            
             set((state) => ({
               interventions: [
                 {
