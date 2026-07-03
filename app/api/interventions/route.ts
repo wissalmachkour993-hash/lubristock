@@ -2,20 +2,23 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 export async function GET() {
-  try {
-    const interventions = await prisma.intervention.findMany({
-      orderBy: { createdAt: "desc" },
-    })
-
-    return NextResponse.json(interventions)
-  } catch (error) {
-    console.error("Erreur GET interventions:", error)
-    return NextResponse.json(
-      { error: "Erreur lors du chargement des interventions" },
-      { status: 500 }
-    )
+    try {
+      const interventions = await prisma.intervention.findMany({
+        orderBy: { createdAt: "desc" },
+      })
+  
+      return NextResponse.json(interventions)
+    } catch (error) {
+      console.error(error)
+  
+      return NextResponse.json(
+        {
+          error: String(error),
+        },
+        { status: 500 }
+      )
+    }
   }
-}
 
 export async function POST(request: Request) {
   try {
