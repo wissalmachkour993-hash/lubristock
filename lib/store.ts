@@ -176,6 +176,7 @@ export const useStore = create<AppState>()(
       initialized: false,
 
       initializeData: () => {
+        set({ initialized: false });
         void (async () => {
           const current = get();
 
