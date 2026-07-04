@@ -180,10 +180,8 @@ export const useStore = create<AppState>()(
         void (async () => {
           const current = get();
 
-          if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            set({ initialized: true });
-            return;
-          }
+
+        
 
           const [lubsR, interventionsR, categoriesR, equipementsR, alertsR, settingsR] =
             await Promise.allSettled([
